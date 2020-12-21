@@ -9,7 +9,7 @@
     <Grid>
         <Button Content="开始" HorizontalAlignment="Left" Height="40" Margin="50,140,0,0" VerticalAlignment="Top" Width="105" Click="Start_Click"/>
         <Button Content="停止" HorizontalAlignment="Left" Height="40" Margin="50,220,0,0" VerticalAlignment="Top" Width="105" Click="Stop_Click"/>
-        <RadioButton x:Name="bool0_0" Content="RadioButton" HorizontalAlignment="Left" Height="35" Margin="285,80,0,0" VerticalAlignment="Top" Width="70"/>
+        <TextBlock x:Name="bool_show" HorizontalAlignment="Left" Height="190" Margin="190,115,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="520"/>
 
     </Grid>
 </Window>

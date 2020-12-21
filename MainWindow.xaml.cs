@@ -1,5 +1,7 @@
 ﻿using NationalInstruments.DAQmx;
+using System;
 using System.Collections;
+using System.Data;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -32,7 +34,7 @@ namespace HardWareOperater
         {
             InitializeComponent();
             /*控件操作*/
-            Bind(source, bool0_0, RadioButton.IsCheckedProperty, "object");//绑定RadioButton
+            Bind(source, bool_show, TextBlock.TextProperty);//绑定RadioButton
 
             /*硬件操作*/
             foreach (string DI_Line in DI_Lines)
@@ -66,7 +68,8 @@ namespace HardWareOperater
             string state="";
             bool run = true;
             /*需要传输的数据*/
-            bool[,] data;
+            bool[,]data;
+            string a = "";
             /*主循环*/
             while (run)
             {
@@ -80,7 +83,24 @@ namespace HardWareOperater
                     {
                         case "start":
                            data= DigitalReader.ReadSingleSampleMultiLine();//多通道（通过实例化数据流已经完成设置），单采集，多线
-                            source.Data_object = data[7, 2];
+                            a = "";
+                            for (int i = 0; i < data.GetLength(0); i++)
+                            {
+                                a +="第"+ i.ToString()+"行:";
+                                for (int j = 0; j < data.GetLength(1); j++)
+                                {
+                                    if (data[i, j])
+                                    {
+                                        a += "1";
+                                    }
+                                    else
+                                    {
+                                        a += "0";
+                                    }
+                                }
+                                a += "\n";
+                            }
+                            source.Data_object = a;
                             break;
                         case "stop":
                             break;
@@ -95,8 +115,5 @@ namespace HardWareOperater
                 Thread.Sleep(100);//休眠100ms
             }
         }
-
-
-        
     }
 }
