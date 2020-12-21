@@ -31,9 +31,8 @@ namespace HardWareOperater
 
         Queue q = new Queue();//操作队列
 
-        Source source = new Source();//绑定数据源
+        Source source_DataGrid = new Source();//DataGrid的数据源
 
-        Source source_1 = new Source();//绑定第一列
 
         
 
@@ -42,12 +41,8 @@ namespace HardWareOperater
             InitializeComponent();
             
             /*控件操作*/
-            Bind(source, bool_show, TextBlock.TextProperty);//绑定RadioButton
+            Bind(source_DataGrid, mygrid, DataGrid.ItemsSourceProperty);
 
-            Bind(source_1, mygrid, DataGrid.ItemsSourceProperty);
-            
-            
-            
             /*硬件操作*/
             foreach (string DI_Line in DI_Lines)//创建多个通道
             {
@@ -64,8 +59,6 @@ namespace HardWareOperater
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
-            
-
             q.Enqueue("start");
         }//开始按钮
         private void Stop_Click(object sender, RoutedEventArgs e)
@@ -81,9 +74,9 @@ namespace HardWareOperater
             /*状态机的两个关键变量*/
             string state="";
             bool run = true;
+
             /*需要传输的数据*/
             bool[,]data;
-            string a = "";
             DataTable dt = new DataTable();
             /*主循环*/
             while (run)
@@ -98,24 +91,31 @@ namespace HardWareOperater
                     {
                         case "start":
                            data= DigitalReader.ReadSingleSampleMultiLine();//多通道（通过实例化数据流已经完成设置），单采集，多线
-
-                            dt=new DataTable();
-                            for (int i = 0; i < data.GetLength(0); i++)//初始化一个DataTable
+                            /*把数组存到DataTable中*/
+                            if (dt.Rows.Count == 0)//如果第一次创建，则初始化DataTable，如果每次初始化的话会闪烁
                             {
-                                dt.Columns.Add("第"+i.ToString()+"列");
-                            }
-                            
-                            for (int i = 0; i < data.GetLength(0); i++)
-                            {
-                                DataRow row = dt.NewRow();//创建一个行
-                                for (int j = 0; j < data.GetLength(1); j++)
+                                for (int i = 0; i < data.GetLength(0); i++)//根据数组大小初始化DataTable的列数
                                 {
-                                    row[j] = data[i,j].ToString();
+                                    dt.Columns.Add("第" + i.ToString() + "列",typeof(bool));
                                 }
-                                dt.Rows.Add(row);//向DataTable中添加一行
+                                for (int i = 0; i < data.GetLength(0); i++)
+                                {
+                                    DataRow row = dt.NewRow();//创建一个行
+                                    dt.Rows.Add(row);//把行添加到DataTable
+                                }
                             }
-                            source_1.Data_object = dt.DefaultView;
-                            
+                            else
+                            {
+                                for (int i = 0; i < data.GetLength(0); i++)
+                                {
+                                    for (int j = 0; j < data.GetLength(1); j++)//填充行内容
+                                    {
+                                       dt.Rows[i][j] = data[i, j];
+                                    }
+                                }
+                            }
+                           
+                            source_DataGrid.Data_object = dt.DefaultView;//赋值到DataGrid的数据源
                             break;
                         case "stop":
 
