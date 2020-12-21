@@ -9,7 +9,8 @@
     <Grid>
         <Button Content="开始" HorizontalAlignment="Left" Height="40" Margin="50,140,0,0" VerticalAlignment="Top" Width="105" Click="Start_Click"/>
         <Button Content="停止" HorizontalAlignment="Left" Height="40" Margin="50,220,0,0" VerticalAlignment="Top" Width="105" Click="Stop_Click"/>
-        <TextBlock x:Name="bool_show" HorizontalAlignment="Left" Height="190" Margin="190,115,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="520"/>
+        <TextBlock x:Name="bool_show" HorizontalAlignment="Left" Height="190" Margin="170,220,0,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="585"/>
+        <DataGrid x:Name="mygrid" HorizontalAlignment="Left" Height="210" Margin="170,10,0,0" VerticalAlignment="Top" Width="540"/>
 
     </Grid>
 </Window>

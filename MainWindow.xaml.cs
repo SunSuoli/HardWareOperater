@@ -1,10 +1,13 @@
 ﻿using NationalInstruments.DAQmx;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using static HardWareOperater.BinDing;
 
 namespace HardWareOperater
@@ -29,18 +32,27 @@ namespace HardWareOperater
         Queue q = new Queue();//操作队列
 
         Source source = new Source();//绑定数据源
+
+        Source source_1 = new Source();//绑定第一列
+
         
+
         public MainWindow()
         {
             InitializeComponent();
+            
             /*控件操作*/
             Bind(source, bool_show, TextBlock.TextProperty);//绑定RadioButton
 
+            Bind(source_1, mygrid, DataGrid.ItemsSourceProperty);
+            
+            
+            
             /*硬件操作*/
-            foreach (string DI_Line in DI_Lines)
+            foreach (string DI_Line in DI_Lines)//创建多个通道
             {
                 DI_Task.DIChannels.CreateChannel(DI_Line,null, ChannelLineGrouping.OneChannelForAllLines);
-            }//创建多个通道
+            }
             DI_Task.Start(); //开始任务/
             DigitalReader = new DigitalMultiChannelReader(DI_Task.Stream);//实例化数据流（LabVIEW中将这一步和数据读取集成到一起了）
 
@@ -52,6 +64,8 @@ namespace HardWareOperater
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
+            
+
             q.Enqueue("start");
         }//开始按钮
         private void Stop_Click(object sender, RoutedEventArgs e)
@@ -70,6 +84,7 @@ namespace HardWareOperater
             /*需要传输的数据*/
             bool[,]data;
             string a = "";
+            DataTable dt = new DataTable();
             /*主循环*/
             while (run)
             {
@@ -83,26 +98,27 @@ namespace HardWareOperater
                     {
                         case "start":
                            data= DigitalReader.ReadSingleSampleMultiLine();//多通道（通过实例化数据流已经完成设置），单采集，多线
-                            a = "";
+
+                            dt=new DataTable();
+                            for (int i = 0; i < data.GetLength(0); i++)//初始化一个DataTable
+                            {
+                                dt.Columns.Add("第"+i.ToString()+"列");
+                            }
+                            
                             for (int i = 0; i < data.GetLength(0); i++)
                             {
-                                a +="第"+ i.ToString()+"行:";
+                                DataRow row = dt.NewRow();//创建一个行
                                 for (int j = 0; j < data.GetLength(1); j++)
                                 {
-                                    if (data[i, j])
-                                    {
-                                        a += "1";
-                                    }
-                                    else
-                                    {
-                                        a += "0";
-                                    }
+                                    row[j] = data[i,j].ToString();
                                 }
-                                a += "\n";
+                                dt.Rows.Add(row);//向DataTable中添加一行
                             }
-                            source.Data_object = a;
+                            source_1.Data_object = dt.DefaultView;
+                            
                             break;
                         case "stop":
+
                             break;
                         case "quiet":
                             DI_Task.Stop();
