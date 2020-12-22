@@ -10,6 +10,10 @@
         <Button Content="开始" HorizontalAlignment="Left" Height="40" Margin="50,140,0,0" VerticalAlignment="Top" Width="105" Click="Start_Click"/>
         <Button Content="停止" HorizontalAlignment="Left" Height="40" Margin="50,220,0,0" VerticalAlignment="Top" Width="105" Click="Stop_Click"/>
         <DataGrid x:Name="mygrid" HorizontalAlignment="Left" Height="210" Margin="170,10,0,0" VerticalAlignment="Top" Width="540"/>
+        <RadioButton x:Name="_bool" Content="RadioButton" HorizontalAlignment="Left" Height="30" Margin="230,305,0,0" VerticalAlignment="Top" Width="100"/>
+        <CheckBox x:Name="Value" Content="Value" HorizontalAlignment="Left" Height="25" Margin="230,250,0,0" VerticalAlignment="Top" Width="100"/>
+        <TextBox x:Name="row" HorizontalAlignment="Left" Height="25" Margin="330,244,0,0" TextWrapping="Wrap" Text="行" VerticalAlignment="Top" Width="70"/>
+        <TextBox x:Name="colunm" HorizontalAlignment="Left" Height="25" Margin="430,244,0,0" TextWrapping="Wrap" Text="列" VerticalAlignment="Top" Width="70"/>
 
     </Grid>
 </Window>

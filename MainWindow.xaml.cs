@@ -1,15 +1,11 @@
 ﻿using NationalInstruments.DAQmx;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using static HardWareOperater.BinDing;
-
 namespace HardWareOperater
 {
     /// <summary>
@@ -17,39 +13,39 @@ namespace HardWareOperater
     /// </summary>
     public partial class MainWindow : Window
     {
-        Task DI_Task = new Task();//一个数字输入任务
-        DigitalMultiChannelReader DigitalReader = null;//定义一个多通道数据流
-        string[] DI_Lines = {
-            "离散输入/port0", 
+        /*1.数字量采集卡常量创建*/
+        DAQ_DI di = new DAQ_DI();
+        string[] DI_Ports = {
+            "离散输入/port0",
             "离散输入/port1",
-            "离散输入/port2", 
-            "离散输入/port3", 
-            "离散输入/port4", 
-            "离散输入/port5", 
-            "离散输入/port6", 
+            "离散输入/port2",
+            "离散输入/port3",
+            "离散输入/port4",
+            "离散输入/port5",
+            "离散输入/port6",
             "离散输入/port7"};//通道数组常量
+        /*2.Pikering矩阵开关量创建*/
+        Matrix_Switch ms = new Matrix_Switch();
 
         Queue q = new Queue();//操作队列
 
         Source source_DataGrid = new Source();//DataGrid的数据源
-
-
+        Source source_bool = new Source();//DataGrid的数据源
         
-
         public MainWindow()
         {
             InitializeComponent();
             
             /*控件操作*/
             Bind(source_DataGrid, mygrid, DataGrid.ItemsSourceProperty);
+            Bind(source_bool, _bool, RadioButton.IsCheckedProperty);
 
             /*硬件操作*/
-            foreach (string DI_Line in DI_Lines)//创建多个通道
-            {
-                DI_Task.DIChannels.CreateChannel(DI_Line,null, ChannelLineGrouping.OneChannelForAllLines);
-            }
-            DI_Task.Start(); //开始任务/
-            DigitalReader = new DigitalMultiChannelReader(DI_Task.Stream);//实例化数据流（LabVIEW中将这一步和数据读取集成到一起了）
+            /*1.数字量采集卡初始化*/
+            di.Open_Card(DI_Ports);
+            /*2.Pikering矩阵开关初始化*/
+            ms.Open_Card();
+            ms.Select_subunit(1, 0);
 
             /*启动状态机线程*/
             Thread th_main = new Thread(new ThreadStart(Main));
@@ -60,10 +56,13 @@ namespace HardWareOperater
         private void Start_Click(object sender, RoutedEventArgs e)
         {
             q.Enqueue("start");
+            /*设置*/
+            ms.CrossPoint_Write(Convert.ToInt32(row.Text), Convert.ToInt32(colunm.Text), (bool)Value.IsChecked);
         }//开始按钮
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             q.Enqueue("stop");
+            source_bool.Data_object= ms.CrossPoint_View(Convert.ToInt32(row.Text), Convert.ToInt32(colunm.Text));
         }//停止按钮
         private void Quiet(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -78,6 +77,7 @@ namespace HardWareOperater
             /*需要传输的数据*/
             bool[,]data;
             DataTable dt = new DataTable();
+
             /*主循环*/
             while (run)
             {
@@ -90,7 +90,7 @@ namespace HardWareOperater
                     switch (state)
                     {
                         case "start":
-                           data= DigitalReader.ReadSingleSampleMultiLine();//多通道（通过实例化数据流已经完成设置），单采集，多线
+                            data = di.Digital_Read();
                             /*把数组存到DataTable中*/
                             if (dt.Rows.Count == 0)//如果第一次创建，则初始化DataTable，如果每次初始化的话会闪烁
                             {
@@ -121,7 +121,7 @@ namespace HardWareOperater
 
                             break;
                         case "quiet":
-                            DI_Task.Stop();
+                            di.Close_Card();
                             run = false;
                             break;
                         default:
@@ -131,5 +131,6 @@ namespace HardWareOperater
                 Thread.Sleep(100);//休眠100ms
             }
         }
+
     }
 }

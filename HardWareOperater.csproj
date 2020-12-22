@@ -44,6 +44,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>D:\Program Files (x86)\National Instruments\MeasurementStudioVS2012\DotNET\Assemblies\Current\NationalInstruments.DAQmx.dll</HintPath>
     </Reference>
+    <Reference Include="Pickering.Lxi.Communication">
+      <HintPath>C:\Program Files\Pickering Interfaces Ltd\ClientBridge.NET\Bin\AnyCPU\Pickering.Lxi.Communication.dll</HintPath>
+    </Reference>
+    <Reference Include="Pickering.Lxi.Piplx">
+      <HintPath>C:\Program Files\Pickering Interfaces Ltd\ClientBridge.NET\Bin\AnyCPU\Pickering.Lxi.Piplx.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -73,6 +79,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BinDing.cs" />
+    <Compile Include="HardWares.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
