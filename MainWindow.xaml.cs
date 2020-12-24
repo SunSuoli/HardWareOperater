@@ -1,11 +1,11 @@
-﻿using NationalInstruments.DAQmx;
-using System;
+﻿using System;
 using System.Collections;
 using System.Data;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using static HardWareOperater.BinDing;
+
 namespace HardWareOperater
 {
     /// <summary>
@@ -14,7 +14,7 @@ namespace HardWareOperater
     public partial class MainWindow : Window
     {
         /*1.数字量采集卡常量创建*/
-        DAQ_DI di = new DAQ_DI();
+        DI_DAQ di = new DI_DAQ();
         string[] DI_Ports = {
             "离散输入/port0",
             "离散输入/port1",
@@ -26,6 +26,7 @@ namespace HardWareOperater
             "离散输入/port7"};//通道数组常量
         /*2.Pikering矩阵开关量创建*/
         Matrix_Switch ms = new Matrix_Switch();
+        /*3.安捷伦数字万用表*/
 
         Queue q = new Queue();//操作队列
 
@@ -35,7 +36,6 @@ namespace HardWareOperater
         public MainWindow()
         {
             InitializeComponent();
-            
             /*控件操作*/
             Bind(source_DataGrid, mygrid, DataGrid.ItemsSourceProperty);
             Bind(source_bool, _bool, RadioButton.IsCheckedProperty);
@@ -45,7 +45,10 @@ namespace HardWareOperater
             di.Open_Card(DI_Ports);
             /*2.Pikering矩阵开关初始化*/
             ms.Open_Card();
-            ms.Select_subunit(1, 0);
+            ms.Select_subunit(0, 0);
+            /*3.数字万用表*/
+
+
 
             /*启动状态机线程*/
             Thread th_main = new Thread(new ThreadStart(Main));

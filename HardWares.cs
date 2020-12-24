@@ -1,7 +1,11 @@
 ﻿using NationalInstruments.DAQmx;
 using Pickering.Lxi.Piplx;
+using Ivi.Visa;
+using NationalInstruments.Visa;
+
 namespace HardWareOperater
 {
+    
     /*Pickering 的矩阵开关*/
     public class Matrix_Switch
     {
@@ -32,7 +36,7 @@ namespace HardWareOperater
         }
     }
     /*NI的数字量输入卡*/
-    public class DAQ_DI
+    public class DI_DAQ
     {
         private Task DI_Task = new Task();//一个数字输入任务
         private DigitalMultiChannelReader DigitalReader = null;//定义一个多通道数据流
@@ -54,5 +58,10 @@ namespace HardWareOperater
         {
             DI_Task.Stop();
         }
+    }
+    public class DMM_IVI
+    {
+        ResourceManager rm = new ResourceManager();
+        ParseResult parseResult = rm.Parse("");
     }
 }
