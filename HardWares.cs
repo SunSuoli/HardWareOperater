@@ -1,13 +1,16 @@
-﻿using NationalInstruments.DAQmx;
-using Pickering.Lxi.Piplx;
-using Ivi.Visa;
+﻿using Ivi.Visa;
+using NationalInstruments.DAQmx;
 using NationalInstruments.Visa;
-using System.Text;
+using Pickering.Lxi.Piplx;
+using System;
 using System.Threading;
 
 namespace HardWareOperater
 {
-    
+    //档位枚举常量
+    public enum DMM_FUNCT { VOLT_DC, VOLT_AC, RES, FRES, CURR_DC, CURR_AC, FREQ, PER, CONT, DIOD, VOLT_DC_RAT, TEMP, CAP };
+    //精度
+    public enum DMM_Resolution { _4_5, _5_5, _6_5};
     /*Pickering 的矩阵开关*/
     public class Matrix_Switch
     {
@@ -110,10 +113,8 @@ namespace HardWareOperater
             mbSession.Dispose();
         }
     }
-    class DMM_IVI: Instrument_IVI
+    class DMM_A34401: Instrument_IVI//安捷伦的34401数字万用表
     {
-        public enum DMM_FUNCT{VOLT_DC,VOLT_AC,RES,FRES,CURR_DC,CURR_AC,FREQ,PER,CONT,DIOD,VOLT_DC_RAT,TEMP,CAP};//档位枚举常量
-
         private string[] Functions ={"VOLT:DC",
                         "VOLT:AC",
                         "RES",
@@ -128,30 +129,82 @@ namespace HardWareOperater
                         "TEMP",
                         "CAP"};
         private string fun_str = ":CONF:";//挡位
-        public void Configure(DMM_FUNCT function)
+        private double[] ranges0_1 = { 0.1,1,10,100,1000};
+        private double[] ranges2_3 = { 100, 1000,10000,100000,1000000,10000000,10000000,1000000000 };
+        private double[] ranges4_5 = { 0.0001, 0.001, 0.01, 0.1,1,3 };
+        private double[] ranges12 = { 0.000000001, 0.00000001, 0.0000001, 0.000001, 0.00001};
+        private double[] ranges;
+        private double[] resolutions = { 1000, 100000, 100000 };
+        private string Double2String(double data)
         {
-            fun_str += Functions[(int)function];
+            string str = "";
+            if (data >= 0.0001 & data <= 1000000)
+            {
+                str = string.Format("{0:N6}", data);
+            }
+            else
+            {
+                str = string.Format("{0:E}", data);
+                str = str.Remove(str.IndexOf("E") + 2, 2);
+            }
+            return str;
+        }
+        public void Configure(DMM_FUNCT function,double range, DMM_Resolution resolution)
+        {
+            fun_str += Functions[(int)function]+" ";
             if ((int)function < 6 | (int)function == 12)
             {
-                fun_str += string.Format("{0:%.;%g,}", 12.0000);
                 switch ((int)function)
                 {
                     case 2:
+                        ranges = ranges2_3;
                         break;
                     case 3:
+                        ranges = ranges2_3;
                         break;
                     case 4:
+                        ranges = ranges4_5;
                         break;
                     case 5:
+                        ranges = ranges4_5;
+                        break;
+                    case 12:
+                        ranges = ranges12;
                         break;
                     default:
+                        ranges = ranges0_1;
                         break;
                 }
+                double rang = 0;
+                foreach (double r in ranges)
+                {
+                    if (r >= range)
+                    {
+                        fun_str += Double2String(r)+",";
+                        rang = r;
+                        break;
+                    }
+                }
+                fun_str += Double2String(rang / resolutions[(int)resolution])+";";
             }
             else
             {
                 fun_str += ";";
             }
+            mbSession.RawIO.Write(fun_str);
+        }
+        public double Value_Read()
+        {
+            mbSession.RawIO.Write(":TRIG:SOUR IMM;:TRIG:DEL:AUTO ON;");//Configure Trigger
+            mbSession.RawIO.Write(":TRIG:COUN 1;:SAMP:COUN 1;");//Configure Multipoint
+            mbSession.RawIO.Write("READ?");//Initiate Measurement
+
+            mbSession.TimeoutMilliseconds = 10000;
+            string data=mbSession.RawIO.ReadString(160);
+
+            data =data.Remove(data.IndexOf(','),1);
+            string[] datas = data.Split(',');
+            return Convert.ToDouble(datas[0]);
         }
     }
 }
