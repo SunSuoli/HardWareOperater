@@ -2,6 +2,8 @@
 using Pickering.Lxi.Piplx;
 using Ivi.Visa;
 using NationalInstruments.Visa;
+using System.Text;
+using System.Threading;
 
 namespace HardWareOperater
 {
@@ -59,9 +61,97 @@ namespace HardWareOperater
             DI_Task.Stop();
         }
     }
-    public class DMM_IVI
+    public class Instrument_IVI
     {
-        ResourceManager rm = new ResourceManager();
-        ParseResult parseResult = rm.Parse("");
+        private ResourceManager rm = new ResourceManager();//实例化一个资源
+        protected MessageBasedSession mbSession;
+        protected int a;
+        public void Open_Card(string resourcename,bool reset)
+        {
+            mbSession = (MessageBasedSession)rm.Open(resourcename);//打开资源
+
+            mbSession.TimeoutMilliseconds = 10000;
+            ParseResult Instr = rm.Parse(resourcename);//为了和LabVIEW里的属性名称保持一致，这里命名为Instr
+
+            if (Instr.InterfaceType== HardwareInterfaceType.Serial)//判断是不是串口设备
+            {
+                SerialSession serial = (SerialSession)mbSession;
+
+                /*配置串口参数*/
+                serial.TerminationCharacterEnabled = true;//终止符
+                serial.TerminationCharacter = 0x0A;
+                serial.WriteTermination = SerialTerminationMethod.TerminationCharacter;//写最后加终止符对应LabVIEW里“End Mod For Writes”
+                serial.ReadTermination= SerialTerminationMethod.TerminationCharacter;//读取最后加终止符对应LabVIEW里“End Mod For Reads”
+
+
+                serial.BaudRate = 115200;//波特率
+                serial.Parity = SerialParity.None;//校验位
+                serial.DataBits = 8;//数据位
+                serial.StopBits = SerialStopBitsMode.One;//停止位
+
+                serial.FlowControl = SerialFlowControlModes.None;//流控制
+
+                //serial.Flush((IOBuffers)0xC0, true);//VISA清空I/O空缓存区
+                //serial.SetBufferSize((IOBuffers)0x30, 4096);//VISA设置I/O空缓存区大小
+            }
+            else
+            {
+                mbSession.Clear();//清空资源缓存
+            }
+            if (reset)
+            {
+                mbSession.RawIO.Write("*RST;");//复位设备
+            }
+            Thread.Sleep(100);
+            mbSession.RawIO.Write("*ESE 60;*SRE 56;*CLS;:STAT:QUES:ENAB 32767");//默认设置
+        }
+        public void Close_Card()
+        {
+            mbSession.Dispose();
+        }
+    }
+    class DMM_IVI: Instrument_IVI
+    {
+        public enum DMM_FUNCT{VOLT_DC,VOLT_AC,RES,FRES,CURR_DC,CURR_AC,FREQ,PER,CONT,DIOD,VOLT_DC_RAT,TEMP,CAP};//档位枚举常量
+
+        private string[] Functions ={"VOLT:DC",
+                        "VOLT:AC",
+                        "RES",
+                        "FRES",
+                        "CURR:DC",
+                        "CURR:AC",
+                        "FREQ",
+                        "PER",
+                        "CONT",
+                        "DIOD",
+                        "VOLT:DC:RAT",
+                        "TEMP",
+                        "CAP"};
+        private string fun_str = ":CONF:";//挡位
+        public void Configure(DMM_FUNCT function)
+        {
+            fun_str += Functions[(int)function];
+            if ((int)function < 6 | (int)function == 12)
+            {
+                fun_str += string.Format("{0:%.;%g,}", 12.0000);
+                switch ((int)function)
+                {
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                fun_str += ";";
+            }
+        }
     }
 }

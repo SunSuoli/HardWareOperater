@@ -27,6 +27,7 @@ namespace HardWareOperater
         /*2.Pikering矩阵开关量创建*/
         Matrix_Switch ms = new Matrix_Switch();
         /*3.安捷伦数字万用表*/
+        DMM_IVI dmm = new DMM_IVI();
 
         Queue q = new Queue();//操作队列
 
@@ -36,6 +37,8 @@ namespace HardWareOperater
         public MainWindow()
         {
             InitializeComponent();
+
+            Console.WriteLine(string.Format("{0:E},", 0.0001));
             /*控件操作*/
             Bind(source_DataGrid, mygrid, DataGrid.ItemsSourceProperty);
             Bind(source_bool, _bool, RadioButton.IsCheckedProperty);
@@ -43,12 +46,13 @@ namespace HardWareOperater
             /*硬件操作*/
             /*1.数字量采集卡初始化*/
             di.Open_Card(DI_Ports);
+
             /*2.Pikering矩阵开关初始化*/
             ms.Open_Card();
             ms.Select_subunit(0, 0);
+
             /*3.数字万用表*/
-
-
+            dmm.Open_Card("COM1", true);
 
             /*启动状态机线程*/
             Thread th_main = new Thread(new ThreadStart(Main));
@@ -58,6 +62,7 @@ namespace HardWareOperater
 
         private void Start_Click(object sender, RoutedEventArgs e)
         {
+
             q.Enqueue("start");
             /*设置*/
             ms.CrossPoint_Write(Convert.ToInt32(row.Text), Convert.ToInt32(colunm.Text), (bool)Value.IsChecked);
